@@ -1,0 +1,116 @@
+app:
+  # name: service-name-prefix  # default $.Release.Name
+  namespace:  # default to $.app.name
+  subset: main  # enum: main, canary, etc (if not "main", the workload suffix will be "-{subset}")
+  env: sandbox  # realm: production, staging, homolog, sandbox
+
+# image:
+#   registry: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/  # preprocess with envsubst shell command before helm-upgrade
+#   name: path/to/docker-image-name
+#   tag: v0.0.0-1-g0000000  # recommended replace to git-describe's output before helm-upgrade
+
+# overlays:
+#   runtime:  # creates a configmap named {$.app.name}-{overlays[key]}-env-vars
+#     type: env-vars
+#     items:
+#       CUSCOM_ENV_VAR: "value"
+#       DD_ENV:
+#         fromFieldRef: metadata.labels['app.kubernetes.io/deployment-environment']
+#   inline-file:  # create/update configmap named {$.app.name}-files with data.{overlays[key]}
+#     type: volume
+#     mountPath: /app/test.txt
+#     content: |
+#       direct content here
+#   inline-files-list:  # creates a configmap named {$.app.name}-{overlays[key]}-files
+#     type: volume
+#     mountPath: /app/subpath
+#     items:
+#       test1.txt: |
+#         content of test1.txt
+#       test2.txt: |
+#         content of test2.txt
+#   varlog:
+#     type: volume
+#     from: host
+#     hostPath: /var/log
+#     # mountPath: /var/log  # default to .hostPath
+#     # readonly: true  # default
+#   external-config:
+#     type: volume
+#     from: configMap
+#     name: external-configmap-name
+#     mountPath: /app/cfg
+#     defaultMode: 420
+#     # items:
+#     # - key: data-key
+#     #   path: test.txt
+
+
+# probes:
+#   # api:
+#   #   default:
+#   #     httpGet:
+#   #       path: /
+#   #       port: 8080
+#   #       scheme: HTTP
+#   #     failureThreshold: 3
+#   #     periodSeconds: 30
+#   #     successThreshold: 1
+#   #     timeoutSeconds: 2
+#   #   startup:
+#   #   liveness:
+#   #   readiness:
+
+
+# resources:
+#   # api:
+#   #   limits:
+#   #     cpu: 150m
+#   #     memory: 256Mi
+#   #   requests:
+#   #     cpu: 50m
+#   #     memory: 128Mi
+#   #   sandbox:  # specific for $.app.env
+#   #     limits:
+#   #       cpu: 100m
+#   #       memory: 256Mi
+#   #     requests:
+#   #       cpu: 30m
+#   #       memory: 128Mi
+
+
+# autoscaling:
+#   api:
+#     minReplicas: 3
+#     maxReplicas: 10
+#     targetCPU: 70  # required if minReplicas < maxReplicas
+#     # desired: 1
+#     sandbox:  # env context
+#       minReplicas: 1
+#       maxReplicas: 2
+
+
+# workloads:
+#   # api:
+#   #   enabled: true  # default.
+#   #   maxSurge: 3  # optional
+#   #   image:  # default mounted from $.image
+#   #   command:  # optional. default to Dockerfile CMD
+#   #   fullname:  # optional. mounted from {$.app.name}-{workloads[key]}
+#   #   operation: api  # optional. enum: api, api-agent, cronjob, job, service, stream, worker, worker-agent
+#   #   schedule:  # optional. Used only for operation: cronjob
+#   #   resources: api  # optional. Ignored if not present in $.resources[key]
+#   #   autoscaling: false  # default. Use $.autoscaling[key]
+#   #   probes: api  # optional. Ignored if not present in $.probes
+#   #   env:
+#   #     API_KEY: "123"
+#   #     SERVICE_NAME:
+#   #       fromFieldRef: metadata.labels['app.kubernetes.io/component']
+#   #   envFrom:
+#   #   - configMapRef: external-configmap-name
+#   #   - secretRef: external-secret-name
+#   #   servicePorts:
+#   #     http1: 8080  # TCP
+#   #     http2/TCP: 8081  # explicit
+#   #     stream/UDP: 8083
+#   #   overlays: [ vars, inline-file ]  # list of volumes or env-vars to include (see $.overlays)
