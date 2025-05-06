@@ -1,0 +1,68 @@
+{{- range $key, $value := .Values.workloads }}
+{{- if and .enabled (has (default $key .operation) (list "api" "service" "stream" "worker")) }}
+  {{- $app_name := include "app.fullname" (dict "root" $ "scope" $key "Values" .) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $app_name }}
+  namespace: {{ include "app.namespace" $ }}
+  labels:
+    app/name: {{ $app_name }}
+    app/realm: {{ $.Values.app.env }}
+spec:
+  selector:
+    matchLabels:
+      app/name: {{ $app_name }}
+  {{- if .maxSurge }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .maxSurge }}
+      maxUnavailable: 0
+    type: RollingUpdate
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        app/name: {{ $app_name }}
+        app/realm: {{ $.Values.app.env }}
+    containers:
+    - image: {{ include "app.image" (dict "root" $ "scope" $key "Values" .) }}
+      name: app
+      env:
+      - name: REALM_CONTEXT_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.labels["app/realm"]
+  {{- if .env }}
+    {{- include "app.env-vars" . | nindent 6 }}
+  {{- end }}
+  {{- if .envFrom }}
+      envFrom:
+    {{- include "app.env-from" . | nindent 6 -}}
+  {{- end }}
+  {{- if and .probes (index $.Values.probes .probes) }}
+    {{- $probes := (index $.Values.probes .probes) }}
+    {{- if or $probes.liveness $probes.default }}
+      livenessProbe:
+      {{- $probes.liveness | default $probes.default | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if or $probes.readiness $probes.default }}
+      readinessProbe:
+      {{- $probes.readiness | default $probes.default | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if $probes.startup }}
+      startupProbe:
+      {{- $probes.startup | default $probes.default | toYaml | nindent 8 }}
+    {{- end }}
+    {{- if .servicePorts }}
+      ports:
+      {{- range $portName, $portValue := .servicePorts }}
+      - containerPort: {{ $portValue }}
+        name: {{ regexReplaceAll "/.*" $portName "" }}
+        protocol: {{ ternary "UDP" "TCP" (hasSuffix "/UDP" $portName) }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
