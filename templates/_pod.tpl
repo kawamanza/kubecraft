@@ -33,13 +33,13 @@ containers:
   startupProbe:
       {{- $probes.startup | default $probes.default | toYaml | nindent 4 }}
     {{- end }}
-    {{- if .servicePorts }}
+  {{- end }}
+  {{- if .servicePorts }}
   ports:
-      {{- range $portName, $portValue := .servicePorts }}
+    {{- range $portName, $portValue := .servicePorts }}
   - containerPort: {{ $portValue }}
     name: {{ regexReplaceAll "/.*" $portName "" }}
     protocol: {{ ternary "UDP" "TCP" (hasSuffix "/UDP" $portName) }}
-      {{- end }}
     {{- end }}
   {{- end }}
 {{- end -}}
