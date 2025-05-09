@@ -39,7 +39,7 @@ containers:
   ports:
     {{- range $portName, $portValue := .servicePorts }}
   - containerPort: {{ $portValue }}
-    name: {{ regexReplaceAll "/.*" $portName "" }}
+    name: {{ regexReplaceAll "/[^/]+$" $portName "" }}
     protocol: {{ ternary "UDP" "TCP" (hasSuffix "/UDP" $portName) }}
     {{- end }}
   {{- end }}
