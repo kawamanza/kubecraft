@@ -1,0 +1,23 @@
+{{- range $key, $value := .Values.workloads }}
+{{- if and .enabled (has (default $key .operation) (list "agent" "daemon" "daemonset" "worker-agent")) }}
+  {{- $scope := mustMergeOverwrite (deepCopy .) $ (dict "scope" $key) }}
+  {{- $app_name := include "kubecraft.app-fullname" $scope }}
+---
+apiVersion: apps/v1
+kind: Daemonset
+metadata:
+  name: {{ $app_name }}
+  namespace: {{ include "kubecraft.app-namespace" $ }}
+  labels:
+    app/name: {{ $app_name }}
+    app/subset: {{ $.Values.app.subset }}
+    app/realm: {{ $.Values.app.env }}
+spec:
+  selector:
+    matchLabels:
+      app/name: {{ $app_name }}
+      app/subset: {{ $.Values.app.subset }}
+  template:
+  {{- include "kubecraft.pod-template" $scope | indent 4 }}
+{{- end }}
+{{- end }}
