@@ -3,6 +3,7 @@
 metadata:
   labels:
     app/name: {{ $app_name }}
+    app/subset: {{ $.Values.app.subset }}
     app/realm: {{ $.Values.app.env }}
 containers:
 - image: {{ include "kubecraft.app-image" $ }}

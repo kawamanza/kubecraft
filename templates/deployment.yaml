@@ -10,11 +10,13 @@ metadata:
   namespace: {{ include "kubecraft.app-namespace" $ }}
   labels:
     app/name: {{ $app_name }}
+    app/subset: {{ $.Values.app.subset }}
     app/realm: {{ $.Values.app.env }}
 spec:
   selector:
     matchLabels:
       app/name: {{ $app_name }}
+      app/subset: {{ $.Values.app.subset }}
   {{- if .maxSurge }}
   strategy:
     rollingUpdate:
