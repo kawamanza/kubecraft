@@ -65,7 +65,8 @@ envFrom:
     {{- $ol := get $.Values.overlays . }}
     {{- if eq "env-vars" $ol.type -}}
       {{- $scope := mustMergeOverwrite (deepCopy $ol) (dict "Values" $.Values "Release" $.Release "scope" .) }}
-- configMapRef: {{ include "kubecraft.app-fullname" $scope }}-env-vars
+      {{- $template_name := ternary "%s" "%s-env-vars" (kindIs "string" $ol.fullname) }}
+- configMapRef: {{ printf $template_name (include "kubecraft.app-fullname" $scope) }}
     {{- end -}}
   {{- end -}}
 {{- end -}}

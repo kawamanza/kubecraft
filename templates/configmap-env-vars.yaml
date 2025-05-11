@@ -2,11 +2,12 @@
 {{- if eq .type "env-vars" }}
   {{- $scope := mustMergeOverwrite (deepCopy .) $ (dict "scope" $key) }}
   {{- $app_name := include "kubecraft.app-fullname" $scope }}
+  {{- $template_name := ternary "%s" "%s-env-vars" (kindIs "string" .fullname) }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ printf "%s-env-vars" $app_name }}
+  name: {{ printf $template_name $app_name }}
   namespace: {{ include "kubecraft.app-namespace" $ }}
 data:
   {{- range $env_key, $env_value := .items }}
