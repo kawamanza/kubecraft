@@ -27,11 +27,24 @@
     {{- else if $value.fromFieldRef }}
   valueFrom:
     fieldRef:
-      apiVersion: v1
       fieldPath: {{ $value.fromFieldRef }}
     {{- else }}
       {{- $value | toYaml | indent 2 }}
     {{- end }}
+  {{- end }}
+{{- end -}}
+
+{{- define "kubecraft.overlay-env-vars" -}}
+env:
+  {{- range .overlays -}}
+    {{- $ol := get $.Values.overlays . }}
+    {{- if eq "env-vars" $ol.type -}}
+      {{- range $key, $value := $ol.items -}}
+        {{- if kindIs "map" $value }}
+  {{ $key }}:{{ $value | toYaml | nindent 4 }}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
   {{- end }}
 {{- end -}}
 
