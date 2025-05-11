@@ -42,6 +42,8 @@ env:
       {{- range $key, $value := $ol.items -}}
         {{- if kindIs "map" $value }}
   {{ $key }}:{{ $value | toYaml | nindent 4 }}
+        {{- else if regexMatch "\\$\\([\\w]+\\)" $value }}
+  {{ $key }}: {{ $value }}
         {{- end -}}
       {{- end -}}
     {{- end -}}

@@ -10,7 +10,7 @@ metadata:
   namespace: {{ include "kubecraft.app-namespace" $ }}
 data:
   {{- range $env_key, $env_value := .items }}
-    {{- if not (kindIs "map" $env_value) }}
+    {{- if not (or (kindIs "map" $env_value) (regexMatch "\\$\\([\\w]+\\)" $env_value) ) }}
   {{ $env_key }}: {{ $env_value | quote }}
     {{- end }}
   {{- end }}
