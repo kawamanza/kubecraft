@@ -16,9 +16,11 @@ containers:
   {{- if .env }}
     {{- include "kubecraft.app-env-vars" . | indent 2 }}
   {{- end }}
-  {{- if .envFrom }}
+  {{- $ol_env_vars := include "kubecraft.overlay-env-from" . | fromYaml }}
+  {{- if or .envFrom $ol_env_vars.envFrom }}
   envFrom:
     {{- include "kubecraft.app-env-from" . | indent 2 }}
+    {{- include "kubecraft.app-env-from" $ol_env_vars | indent 2 }}
   {{- end }}
   {{- if and .probes (index $.Values.probes .probes) }}
     {{- $probes := (index $.Values.probes .probes) }}

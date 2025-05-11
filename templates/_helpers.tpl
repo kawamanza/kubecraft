@@ -38,12 +38,19 @@
 {{- define "kubecraft.app-env-from" -}}
   {{- range $value := .envFrom }}
     {{- $key := (index (keys $value) 0) }}
-    {{- if kindIs "string" (get $value $key) }}
 - {{ $key }}:
     name: {{ get $value $key }}
     {{- else }}
-- {{ $key }}:
-    {{- get $value $key | toYaml | indent 4 }}
-    {{- end }}
   {{- end }}
+{{- end -}}
+
+{{- define "kubecraft.overlay-env-from" -}}
+envFrom:
+  {{- range .overlays -}}
+    {{- $ol := get $.Values.overlays . }}
+    {{- if eq "env-vars" $ol.type -}}
+      {{- $scope := mustMergeOverwrite (deepCopy $ol) (dict "Values" $.Values "Release" $.Release "scope" .) }}
+- configMapRef: {{ include "kubecraft.app-fullname" $scope }}-env-vars
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
