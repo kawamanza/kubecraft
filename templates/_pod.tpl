@@ -8,6 +8,10 @@ metadata:
 containers:
 - image: {{ include "kubecraft.app-image" $ }}
   name: app
+  {{- if .command }}
+  command:
+    {{- .command | toYaml | nindent 2 }}
+  {{- end }}
   env:
   - name: REALM_CONTEXT_NAME
     valueFrom:
