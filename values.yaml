@@ -18,6 +18,7 @@ app:
 #         fromFieldRef: metadata.labels['app.kubernetes.io/deployment-environment']
 #   inline-file:  # create/update configmap named {$.app.name}-files with data.{overlays[key]}
 #     type: volume
+#     env: sandbox  # optional. force creation only for this scope
 #     mountPath: /app/test.txt
 #     content: |
 #       direct content here
@@ -113,4 +114,7 @@ app:
 #   #     http1: 8080  # TCP
 #   #     http2/TCP: 8081  # explicit
 #   #     stream/UDP: 8083
-#   #   overlays: [ vars, inline-file ]  # list of volumes or env-vars to include (see $.overlays)
+#   #   overlays:  # list of volumes or env-vars to include (see $.overlays)
+#   #   - vars
+#   #   - sandbox: inline-file
+#   #     production: inline-file-list

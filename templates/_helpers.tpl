@@ -37,7 +37,11 @@
 {{- define "kubecraft.overlay-env-vars" -}}
 env:
   {{- range .overlays -}}
-    {{- $ol := get $.Values.overlays . }}
+    {{- $ol_name := get (ternary . (dict $.Values.app.env .) (kindIs "map" .)) $.Values.app.env | default (toString .) -}}
+    {{- $ol := get $.Values.overlays $ol_name -}}
+    {{- if not $ol -}}
+      {{- required (printf "Overlay not found: '%s' for %s" $ol_name $.Values.app.env) $ol -}}
+    {{- end -}}
     {{- if eq "env-vars" $ol.type -}}
       {{- range $key, $value := $ol.items -}}
         {{- if kindIs "map" $value }}
@@ -62,9 +66,13 @@ env:
 {{- define "kubecraft.overlay-env-from" -}}
 envFrom:
   {{- range .overlays -}}
-    {{- $ol := get $.Values.overlays . }}
+    {{- $ol_name := get (ternary . (dict $.Values.app.env .) (kindIs "map" .)) $.Values.app.env | default (toString .) -}}
+    {{- $ol := get $.Values.overlays $ol_name -}}
+    {{- if not $ol -}}
+      {{- required (printf "Overlay not found: '%s' for %s" $ol_name $.Values.app.env) $ol -}}
+    {{- end -}}
     {{- if eq "env-vars" $ol.type -}}
-      {{- $scope := mustMergeOverwrite (deepCopy $ol) (dict "Values" $.Values "Release" $.Release "scope" .) }}
+      {{- $scope := mustMergeOverwrite (deepCopy $ol) (dict "Values" $.Values "Release" $.Release "scope" $ol_name) -}}
       {{- $template_name := ternary "%s" "%s-env-vars" (kindIs "string" $ol.fullname) }}
 - configMapRef: {{ printf $template_name (include "kubecraft.app-fullname" $scope) }}
     {{- end -}}
