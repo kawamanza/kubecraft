@@ -1,10 +1,14 @@
-{{- define "kubecraft.pod-template" -}}
+{{- define "kubecraft.metadata-labels" -}}
   {{- $app_name := include "kubecraft.app-fullname" $ }}
+labels:
+  app/name: {{ $app_name }}
+  app/subset: {{ $.Values.app.subset }}
+  app/realm: {{ $.Values.app.env }}
+{{- end -}}
+
+{{- define "kubecraft.pod-template" }}
 metadata:
-  labels:
-    app/name: {{ $app_name }}
-    app/subset: {{ $.Values.app.subset }}
-    app/realm: {{ $.Values.app.env }}
+  {{- include "kubecraft.metadata-labels" $ | indent 2 }}
 containers:
 - image: {{ include "kubecraft.app-image" $ }}
   name: app

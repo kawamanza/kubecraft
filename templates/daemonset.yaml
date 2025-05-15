@@ -6,17 +6,19 @@
 apiVersion: apps/v1
 kind: Daemonset
 metadata:
-  name: {{ $app_name }}
-  namespace: {{ include "kubecraft.app-namespace" $ }}
-  labels:
-    app/name: {{ $app_name }}
-    app/subset: {{ $.Values.app.subset }}
-    app/realm: {{ $.Values.app.env }}
+  {{- $labels := include "kubecraft.metadata-labels" $scope | fromYaml }}
+  {{- $metadataExtras := get (.extras | default dict) "metadata" | default dict }}
+  {{- mustMergeOverwrite (deepCopy $metadataExtras) $labels (dict "name" $app_name "namespace" $.Release.Namespace) | toYaml | nindent 2 }}
 spec:
   selector:
     matchLabels:
       app/name: {{ $app_name }}
       app/subset: {{ $.Values.app.subset }}
+  {{- $specExtras := get (.extras | default dict) "spec" | default dict }}
+  {{- $specExtras := unset $specExtras "selector"}}
+  {{- if $specExtras }}
+    {{- $specExtras | toYaml | nindent 2 }}
+  {{- end }}
   template:
   {{- include "kubecraft.pod-template" $scope | indent 4 }}
 {{- end }}
