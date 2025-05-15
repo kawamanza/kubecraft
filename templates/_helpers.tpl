@@ -7,10 +7,6 @@
   {{- end }}
 {{- end -}}
 
-{{- define "kubecraft.app-namespace" -}}
-  {{- printf "%s" (default $.Release.Namespace $.Values.app.namespace) }}
-{{- end -}}
-
 {{- define "kubecraft.app-image" -}}
   {{- if .image }}
     {{- printf "%s" .image }}

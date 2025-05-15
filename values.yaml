@@ -1,6 +1,5 @@
 app:
   # name: service-name-prefix  # default $.Release.Name
-  namespace:  # default to $.Release.Namespace
   subset: main  # enum: main, canary, etc (if not "main", the workload suffix will be "-{subset}")
   env: sandbox  # realm: production, staging, homolog, sandbox
 
@@ -95,6 +94,9 @@ app:
 #   # api:
 #   #   enabled: true  # default.
 #   #   maxSurge: 3  # optional
+#   #   extras:  # workload extras
+#   #     metadata: {}
+#   #     spec: {}
 #   #   image:  # default mounted from $.image
 #   #   command:  # optional. default to Dockerfile CMD
 #   #   fullname:  # optional. mounted from {$.app.name}-{workloads[key]}
