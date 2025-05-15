@@ -17,14 +17,14 @@ containers:
     valueFrom:
       fieldRef:
         fieldPath: metadata.labels["app/realm"]
-  {{- include "kubecraft.app-env-vars" . | indent 2 }}
   {{- $ol_env_vars := include "kubecraft.overlay-env-vars" . | fromYaml }}
   {{- include "kubecraft.app-env-vars" $ol_env_vars | indent 2 }}
+  {{- include "kubecraft.app-env-vars" . | indent 2 }}
   {{- $ol_env_from := include "kubecraft.overlay-env-from" . | fromYaml }}
   {{- if or .envFrom $ol_env_from.envFrom }}
   envFrom:
-    {{- include "kubecraft.app-env-from" . | indent 2 }}
     {{- include "kubecraft.app-env-from" $ol_env_from | indent 2 }}
+    {{- include "kubecraft.app-env-from" . | indent 2 }}
   {{- end }}
   {{- $resources := get ($.Values.resources | default dict) (default .scope .resources) }}
   {{- if $resources }}
