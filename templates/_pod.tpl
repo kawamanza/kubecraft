@@ -26,6 +26,15 @@ containers:
     {{- include "kubecraft.app-env-from" . | indent 2 }}
     {{- include "kubecraft.app-env-from" $ol_env_from | indent 2 }}
   {{- end }}
+  {{- $resources := get ($.Values.resources | default dict) (default .scope .resources) }}
+  {{- if $resources }}
+    {{- with default $resources (get $resources $.Values.app.env) }}
+  resources:
+      {{- dict "requests" .requests "limits" .limits | toYaml | nindent 4 }}
+    {{- end }}
+  {{- else if .resources }}
+    {{- required (printf "Resources from scope '%s' not found" .resources) nil }}
+  {{- end }}
   {{- if and .probes (index $.Values.probes .probes) }}
     {{- $probes := (index $.Values.probes .probes) }}
     {{- if or $probes.liveness $probes.default }}
