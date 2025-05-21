@@ -13,9 +13,11 @@ metadata:
   {{- mustMergeOverwrite (deepCopy $extras) $md | toYaml | nindent 2 }}
 containers:
   {{- $container := include "kubecraft.container-template" $ | fromYaml }}
-  {{- $extras := (get (.templateExtras | default dict) "spec" | default dict) }}
+  {{- $extras := (get (.templateExtras | default dict) "container" | default dict) }}
   {{- $container := mustMergeOverwrite (deepCopy $extras) $container }}
   {{- toYaml (list $container) | nindent 0 }}
+  {{- $extras := (get (.templateExtras | default dict) "spec" | default dict) }}
+  {{- toYaml $extras | nindent 0 }}
 {{- end -}}
 
 {{- define "kubecraft.container-template" }}
