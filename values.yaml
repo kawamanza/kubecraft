@@ -97,6 +97,7 @@ app:
 #   #   extras:  # workload extras
 #   #     metadata: {}
 #   #     spec: {}
+#   #   templateExtras: {}  # workload template extras
 #   #   image:  # default mounted from $.image
 #   #   command:  # optional. default to Dockerfile CMD
 #   #   fullname:  # optional. mounted from {$.app.name}-{workloads[key]}
