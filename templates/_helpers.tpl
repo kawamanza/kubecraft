@@ -33,10 +33,11 @@
 {{- define "kubecraft.overlay-env-vars" -}}
 env:
   {{- range .overlays -}}
-    {{- $ol_name := get (ternary . (dict $.Values.app.env .) (kindIs "map" .)) $.Values.app.env | default (toString .) -}}
-    {{- $ol := get $.Values.overlays $ol_name -}}
-    {{- if not $ol -}}
-      {{- required (printf "Overlay not found: '%s' for %s" $ol_name $.Values.app.env) $ol -}}
+    {{- $ol_ref := ternary . (dict $.Values.app.env .) (kindIs "map" .) -}}
+    {{- $ol_name := get $ol_ref $.Values.app.env }}
+    {{- $ol := get $.Values.overlays (toString $ol_name) | default dict -}}
+    {{- if or (not (hasKey $ol_ref $.Values.app.env)) (not (or (kindIs "bool" $ol_name) (hasKey $.Values.overlays $ol_name))) -}}
+      {{- required (printf "Overlay not found: %s for %s" $ol_ref $.Values.app.env) nil -}}
     {{- end -}}
     {{- if eq "env-vars" $ol.type -}}
       {{- range $key, $value := $ol.items -}}
@@ -62,10 +63,11 @@ env:
 {{- define "kubecraft.overlay-env-from" -}}
 envFrom:
   {{- range .overlays -}}
-    {{- $ol_name := get (ternary . (dict $.Values.app.env .) (kindIs "map" .)) $.Values.app.env | default (toString .) -}}
-    {{- $ol := get $.Values.overlays $ol_name -}}
-    {{- if not $ol -}}
-      {{- required (printf "Overlay not found: '%s' for %s" $ol_name $.Values.app.env) $ol -}}
+    {{- $ol_ref := ternary . (dict $.Values.app.env .) (kindIs "map" .) -}}
+    {{- $ol_name := get $ol_ref $.Values.app.env }}
+    {{- $ol := get $.Values.overlays (toString $ol_name) | default dict -}}
+    {{- if or (not (hasKey $ol_ref $.Values.app.env)) (not (or (kindIs "bool" $ol_name) (hasKey $.Values.overlays $ol_name))) -}}
+      {{- required (printf "Overlay not found: %s for %s" $ol_ref $.Values.app.env) nil -}}
     {{- end -}}
     {{- if eq "env-vars" $ol.type -}}
       {{- $scope := mustMergeOverwrite (deepCopy $ol) (dict "Values" $.Values "Release" $.Release "scope" $ol_name) -}}
