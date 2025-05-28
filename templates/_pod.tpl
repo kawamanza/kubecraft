@@ -63,7 +63,7 @@ livenessProbe:
 readinessProbe:
       {{- $probes.readiness | default $probes.default | toYaml | nindent 2 }}
     {{- end }}
-    {{- if $probes.startup }}
+    {{- if or $probes.startup $probes.default }}
 startupProbe:
       {{- $probes.startup | default $probes.default | toYaml | nindent 2 }}
     {{- end }}
