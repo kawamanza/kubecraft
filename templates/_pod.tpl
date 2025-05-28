@@ -6,18 +6,21 @@ labels:
   app/realm: {{ $.Values.app.env }}
 {{- end -}}
 
-{{- define "kubecraft.pod-template" }}
+{{- define "kubecraft.pod-template-base" }}
 metadata:
-  {{- $md := include "kubecraft.metadata-labels" $ | fromYaml }}
-  {{- $extras := (get (.templateExtras | default dict) "metadata" | default dict) }}
-  {{- mustMergeOverwrite (deepCopy $extras) $md | toYaml | nindent 2 }}
-containers:
+  {{- include "kubecraft.metadata-labels" $ | nindent 2 }}
+spec:
+  containers:
   {{- $container := include "kubecraft.container-template" $ | fromYaml }}
-  {{- $extras := (get (.templateExtras | default dict) "container" | default dict) }}
+  {{- $extras := (get (.containerExtras | default dict) "app" | default dict) }}
   {{- $container := mustMergeOverwrite (deepCopy $extras) $container }}
-  {{- toYaml (list $container) | nindent 0 }}
-  {{- $extras := (get (.templateExtras | default dict) "spec" | default dict) }}
-  {{- toYaml $extras | nindent 0 }}
+  {{- toYaml (list $container) | nindent 2 }}
+{{- end -}}
+
+{{- define "kubecraft.pod-template" }}
+  {{- $tmp := include "kubecraft.pod-template-base" $ | fromYaml }}
+  {{- $extras := mustMergeOverwrite (deepCopy (.templateExtras | default dict)) $tmp }}
+  {{- $extras | toYaml | nindent 0 }}
 {{- end -}}
 
 {{- define "kubecraft.container-template" }}

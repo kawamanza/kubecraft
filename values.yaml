@@ -93,14 +93,14 @@ app:
 # workloads:
 #   # api:
 #   #   enabled: true  # default.
-#   #   maxSurge: 3  # optional
 #   #   extras:  # workload extras
 #   #     metadata: {}
 #   #     spec: {}
 #   #   templateExtras:  # workload template extras
 #   #     metadata: {}   # workload template extra metadata
 #   #     spec: {}       # workload template extra config
-#   #     container: {}  # workload main container extra config
+#   #   containerExtras:
+#   #     app: {}        # workload main container extra config
 #   #   image:  # default mounted from $.image
 #   #   command:  # optional. default to Dockerfile CMD
 #   #   fullname:  # optional. mounted from {$.app.name}-{workloads[key]}
