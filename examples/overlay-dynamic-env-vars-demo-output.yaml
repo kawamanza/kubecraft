@@ -1,0 +1,51 @@
+---
+# Source: kubecraft/templates/configmap-env-vars.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: overlay-dynamic-env-vars-demo-runtime-env-vars
+  namespace: default
+data:
+  LOG_LEVEL: "debug"
+---
+# Source: kubecraft/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app/name: overlay-dynamic-env-vars-demo-api
+    app/realm: sandbox
+    app/subset: main
+  name: overlay-dynamic-env-vars-demo-api
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app/name: overlay-dynamic-env-vars-demo-api
+      app/subset: main
+  template:    
+    metadata:
+      labels:
+        app/name: overlay-dynamic-env-vars-demo-api
+        app/realm: sandbox
+        app/subset: main
+    spec:
+      containers:
+      - env:
+        - name: REALM_CONTEXT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels["app/realm"]
+        - name: LOG_LEVEL
+          value: info
+        - name: ENVIRONMENT
+          value: $(REALME_CONTEXT_NAME)
+        - name: SERVICE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app.kubernetes.io/name']
+        envFrom:
+        - configMapRef:
+            name: overlay-dynamic-env-vars-demo-runtime-env-vars
+        image: python:3.12-alpine
+        name: app

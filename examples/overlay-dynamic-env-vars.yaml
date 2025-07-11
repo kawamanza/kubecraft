@@ -1,0 +1,21 @@
+app:
+  subnet: main
+  env: sandbox
+
+overlays:
+  runtime:
+    type: env-vars
+    items:
+      LOG_LEVEL: debug  # configmap manifest
+      ENVIRONMENT: $(REALME_CONTEXT_NAME)  # deployment manifest
+      SERVICE_NAME:  # deployment manifest
+        fromFieldRef: metadata.labels['app.kubernetes.io/name']
+
+workloads:
+  api:
+    enabled: true
+    image: python:3.12-alpine
+    env:
+      LOG_LEVEL: info
+    overlays:
+    - runtime  # inject config from $.overlays.runtime
