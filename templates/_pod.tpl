@@ -50,7 +50,7 @@ env:
 - name: REALM_CONTEXT_NAME
   valueFrom:
     fieldRef:
-      fieldPath: metadata.labels["app/realm"]
+      fieldPath: metadata.labels['app/realm']
   {{- include "kubecraft.app-env-vars" . | indent 0 }}
   {{- $ol_env_vars := include "kubecraft.overlay-env-vars" . | fromYaml }}
   {{- include "kubecraft.app-env-vars" $ol_env_vars | indent 0 }}
