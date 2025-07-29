@@ -1,0 +1,42 @@
+---
+# Source: kubecraft/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app/name: ensaio-demo
+    app/realm: sandbox
+    app/subset: main
+  name: ensaio-demo
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app/name: ensaio-demo
+      app/subset: main
+  template:    
+    metadata:
+      labels:
+        app/name: ensaio-demo
+        app/realm: sandbox
+        app/subset: main
+    spec:
+      containers:
+      - command:
+        - sleep
+        - infinity
+        env:
+        - name: REALM_CONTEXT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app/realm']
+        image: python:3.12-alpine
+        name: app
+        volumeMounts:
+        - mountPath: /var/log/pods
+          name: varlog
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /var/log/pods
+        name: varlog

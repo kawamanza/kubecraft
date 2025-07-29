@@ -1,0 +1,20 @@
+app:
+  subset: main
+  env: sandbox
+
+overlays:
+  varlog:
+    type: volume
+    hostPath: /var/log/pods
+    # mountPath: /var/log/pods  # default to .hostPath
+    # readOnly: false  # default is true.
+
+workloads:
+  demo:
+    enabled: true
+    operation: daemon
+    image: python:3.12-alpine
+    command: [ sleep, infinity ]
+    overlays:
+    - sandbox: varlog
+      production: false
