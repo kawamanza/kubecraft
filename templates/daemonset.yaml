@@ -4,7 +4,7 @@
   {{- $app_name := include "kubecraft.app-fullname" $scope }}
 ---
 apiVersion: apps/v1
-kind: Daemonset
+kind: DaemonSet
 metadata:
   {{- $labels := include "kubecraft.metadata-labels" $scope | fromYaml }}
   {{- $metadataExtras := get (.extras | default dict) "metadata" | default dict }}
