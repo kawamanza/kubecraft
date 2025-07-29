@@ -12,10 +12,12 @@ metadata:
 spec:
   containers:
   {{- $container := include "kubecraft.container-template" $ | fromYaml }}
-  {{- $vols := include "kubecraft.volumes-template" $ | fromYaml }}
+  {{- $vols := include "kubecraft.volumeMounts-template" $ | fromYaml }}
+  {{- $vols := ternary $vols (dict) (kindIs "slice" $vols.volumeMounts) }}
   {{- $extras := (get (.containerExtras | default dict) "app" | default dict) }}
-  {{- $container := mustMergeOverwrite (deepCopy $extras) $container }}
+  {{- $container := mustMergeOverwrite (deepCopy $extras) $container $vols }}
   {{- toYaml (list $container) | nindent 2 }}
+  {{- $vols := include "kubecraft.volumes-template" $ | fromYaml }}
   {{- if $vols.volumes }}
     {{- toYaml $vols | nindent 2 }}
   {{- end -}}
@@ -30,6 +32,11 @@ spec:
 {{- define "kubecraft.volumes-template" }}
 volumes:
   {{- include "kubecraft.overlay-volumes" $ | nindent 0 }}
+{{- end -}}
+
+{{- define "kubecraft.volumeMounts-template" }}
+volumeMounts:
+  {{- include "kubecraft.overlay-volumeMounts" $ | nindent 0 }}
 {{- end -}}
 
 {{- define "kubecraft.container-template" }}
