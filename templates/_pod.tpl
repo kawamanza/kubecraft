@@ -12,15 +12,24 @@ metadata:
 spec:
   containers:
   {{- $container := include "kubecraft.container-template" $ | fromYaml }}
+  {{- $vols := include "kubecraft.volumes-template" $ | fromYaml }}
   {{- $extras := (get (.containerExtras | default dict) "app" | default dict) }}
   {{- $container := mustMergeOverwrite (deepCopy $extras) $container }}
   {{- toYaml (list $container) | nindent 2 }}
+  {{- if $vols.volumes }}
+    {{- toYaml $vols | nindent 2 }}
+  {{- end -}}
 {{- end -}}
 
 {{- define "kubecraft.pod-template" }}
   {{- $tmp := include "kubecraft.pod-template-base" $ | fromYaml }}
   {{- $extras := mustMergeOverwrite (deepCopy (.templateExtras | default dict)) $tmp }}
   {{- $extras | toYaml | nindent 0 }}
+{{- end -}}
+
+{{- define "kubecraft.volumes-template" }}
+volumes:
+  {{- include "kubecraft.overlay-volumes" $ | nindent 0 }}
 {{- end -}}
 
 {{- define "kubecraft.container-template" }}

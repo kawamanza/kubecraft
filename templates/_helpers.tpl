@@ -76,3 +76,21 @@ envFrom:
     {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{- define "kubecraft.overlay-volumes" }}
+  {{- range .overlays }}
+    {{- $ol_ref := ternary . (dict $.Values.app.env .) (kindIs "map" .) -}}
+    {{- $ol_name := get $ol_ref $.Values.app.env }}
+    {{- $ol := get $.Values.overlays (toString $ol_name) | default dict -}}
+    {{- if or (not (hasKey $ol_ref $.Values.app.env)) (not (or (kindIs "bool" $ol_name) (hasKey $.Values.overlays $ol_name))) -}}
+      {{- required (printf "Overlay not found: %s for %s" $ol_ref $.Values.app.env) nil -}}
+    {{- end -}}
+    {{- if eq "volume" $ol.type }}
+      {{- if $ol.hostPath }}
+- hostPath:
+    path: {{ $ol.hostPath }}
+  name: {{ $ol_name }}
+      {{- end -}}
+    {{- end }}
+  {{- end -}}
+{{- end -}}
