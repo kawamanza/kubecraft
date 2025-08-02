@@ -1,5 +1,5 @@
 ---
-# Source: kubecraft/templates/configmap-env-vars.yaml
+# Source: kubecraft/templates/configmap-overlay-env-vars.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -35,7 +35,7 @@ spec:
         - name: REALM_CONTEXT_NAME
           valueFrom:
             fieldRef:
-              fieldPath: metadata.labels["app/realm"]
+              fieldPath: metadata.labels['app/realm']
         - name: LOG_LEVEL
           value: info
         - name: ENVIRONMENT
