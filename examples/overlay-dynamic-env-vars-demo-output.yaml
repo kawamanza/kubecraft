@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: overlay-dynamic-env-vars-demo-runtime-env-vars
+  name: ensaio-demo-runtime-env-vars
   namespace: default
 data:
   LOG_LEVEL: "debug"
@@ -13,20 +13,20 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app/name: overlay-dynamic-env-vars-demo-api
+    app/name: ensaio-demo-api
     app/realm: sandbox
     app/subset: main
-  name: overlay-dynamic-env-vars-demo-api
+  name: ensaio-demo-api
   namespace: default
 spec:
   selector:
     matchLabels:
-      app/name: overlay-dynamic-env-vars-demo-api
+      app/name: ensaio-demo-api
       app/subset: main
   template:    
     metadata:
       labels:
-        app/name: overlay-dynamic-env-vars-demo-api
+        app/name: ensaio-demo-api
         app/realm: sandbox
         app/subset: main
     spec:
@@ -46,6 +46,6 @@ spec:
               fieldPath: metadata.labels['app.kubernetes.io/name']
         envFrom:
         - configMapRef:
-            name: overlay-dynamic-env-vars-demo-runtime-env-vars
+            name: ensaio-demo-runtime-env-vars
         image: python:3.12-alpine
         name: app
