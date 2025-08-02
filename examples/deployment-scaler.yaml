@@ -1,0 +1,21 @@
+app:
+  subset: main
+  env: sandbox
+
+overlays:
+  k8s-management:
+    type: rbac
+    rules:
+    - apiGroups: ["apps"]
+      resources: ["deployments"]
+      verbs: ["get", "patch", "update", "list"]
+
+workloads:
+  demo:
+    enabled: true
+    operation: worker
+    image: bitnami/kubectl:latest
+    command: [ sleep, infinity ]
+    overlays:
+    - k8s-management
+

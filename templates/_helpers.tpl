@@ -51,6 +51,21 @@ env:
   {{- end }}
 {{- end -}}
 
+{{- define "kubecraft.overlay-rbac" -}}
+  {{- range .overlays }}
+    {{- $ol_ref := ternary . (dict $.Values.app.env .) (kindIs "map" .) -}}
+    {{- $ol_name := get $ol_ref $.Values.app.env }}
+    {{- $ol := get $.Values.overlays (toString $ol_name) | default dict -}}
+    {{- if or (not (hasKey $ol_ref $.Values.app.env)) (not (or (kindIs "bool" $ol_name) (hasKey $.Values.overlays $ol_name))) -}}
+      {{- required (printf "Overlay not found: %s for %s" $ol_ref $.Values.app.env) nil -}}
+    {{- end -}}
+    {{- if eq "rbac" $ol.type -}}
+spec:
+  serviceAccountName: {{ printf "%s-%s" $.Release.Name $ol_name }}
+    {{- end -}}
+  {{- end }}
+{{- end -}}
+
 {{- define "kubecraft.app-env-from" -}}
   {{- range $value := .envFrom }}
     {{- $key := (index (keys $value) 0) }}
