@@ -8,10 +8,9 @@ metadata:
 ---
 # Source: kubecraft/templates/role-overlay-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: ensaio-k8s-management-rules
-  namespace: default
 rules:
 - apiGroups:
   - apps
@@ -20,21 +19,18 @@ rules:
   verbs:
   - get
   - patch
-  - update
-  - list
 ---
 # Source: kubecraft/templates/role-overlay-rbac.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   name: ensaio-k8s-management
-  namespace: default
 subjects:
 - kind: ServiceAccount
   name: ensaio-k8s-management
   namespace: default
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: ensaio-k8s-management-rules
   apiGroup: rbac.authorization.k8s.io
 ---
@@ -70,5 +66,6 @@ spec:
             fieldRef:
               fieldPath: metadata.labels['app/realm']
         image: bitnami/kubectl:latest
+        imagePullPolicy: IfNotPresent
         name: app
       serviceAccountName: ensaio-k8s-management

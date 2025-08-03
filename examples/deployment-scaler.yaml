@@ -5,11 +5,11 @@ app:
 overlays:
   k8s-management:
     type: rbac
-    # clusterRole: true
+    clusterRole: true
     rules:
     - apiGroups: ["apps"]
       resources: ["deployments"]
-      verbs: ["get", "patch", "update", "list"]
+      verbs: ["get", "patch"]
 
 workloads:
   demo:
@@ -17,6 +17,9 @@ workloads:
     operation: worker
     image: bitnami/kubectl:latest
     command: [ sleep, infinity ]
+    containerExtras:
+      app:
+        imagePullPolicy: IfNotPresent
     overlays:
     - k8s-management
 
