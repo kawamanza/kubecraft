@@ -4,24 +4,28 @@
   {{- $sa_name := include "kubecraft.app-fullname" $scope }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: {{ ternary "ClusterRole" "Role" (default false .clusterRole) }}
 metadata:
   name: {{ printf "%s-rules" $sa_name }}
+  {{- if not .clusterRole }}
   namespace: {{ $.Release.Namespace }}
+  {{- end }}
 rules:
   {{- .rules | toYaml | nindent 0 }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: {{ ternary "ClusterRoleBinding" "RoleBinding" (default false .clusterRole) }}
 metadata:
   name: {{ $sa_name }}
+  {{- if not .clusterRole }}
   namespace: {{ $.Release.Namespace }}
+  {{- end }}
 subjects:
 - kind: ServiceAccount
   name: {{ $sa_name }}
   namespace: {{ $.Release.Namespace }}
 roleRef:
-  kind: Role
+  kind: {{ ternary "ClusterRole" "Role" (default false .clusterRole) }}
   name: {{ printf "%s-rules" $sa_name }}
   apiGroup: rbac.authorization.k8s.io
 ---

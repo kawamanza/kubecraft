@@ -5,6 +5,7 @@ app:
 overlays:
   k8s-management:
     type: rbac
+    # clusterRole: true
     rules:
     - apiGroups: ["apps"]
       resources: ["deployments"]
