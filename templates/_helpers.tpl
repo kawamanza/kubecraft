@@ -110,6 +110,11 @@ envFrom:
   secret:
     defaultMode: {{ $ol.defaultMode | default 420 }}
     secretName: {{ $ol.fromSecretRef }}
+      {{- else if and $ol.secret (kindIs "map" $ol.items) }}
+- name: {{ $ol_name }}
+  secret:
+    defaultMode: {{ $ol.defaultMode | default 420 }}
+    secretName: {{ printf "%s-files" ($ol.fullname | default $ol_name | trimSuffix "-files") }}
       {{- end -}}
     {{- end }}
   {{- end -}}
@@ -129,6 +134,10 @@ envFrom:
   name: {{ $ol_name }}
   readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
       {{- else if $ol.fromSecretRef }}
+- mountPath: {{ $ol.mountPath }}
+  name: {{ $ol_name }}
+  readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
+      {{- else if  and $ol.secret (kindIs "map" $ol.items) }}
 - mountPath: {{ $ol.mountPath }}
   name: {{ $ol_name }}
   readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
