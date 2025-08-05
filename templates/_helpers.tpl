@@ -114,7 +114,7 @@ envFrom:
 - name: {{ $ol_name }}
   secret:
     defaultMode: {{ $ol.defaultMode | default 420 }}
-    secretName: {{ printf "%s-files" ($ol.fullname | default $ol_name | trimSuffix "-files") }}
+    secretName: {{ $ol.fullname | default (printf "%s-%s-files-%s" $.Release.Name (trimSuffix "-files" $ol_name) (ternary "" $.Values.app.subset (eq "main" $.Values.app.subset))) | trimSuffix "-" }}
       {{- end -}}
     {{- end }}
   {{- end -}}
