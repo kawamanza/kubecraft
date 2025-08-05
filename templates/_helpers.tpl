@@ -105,6 +105,11 @@ envFrom:
 - hostPath:
     path: {{ $ol.hostPath }}
   name: {{ $ol_name }}
+      {{- else if $ol.fromSecretRef }}
+- name: {{ $ol_name }}
+  secret:
+    defaultMode: {{ $ol.defaultMode | default 420 }}
+    secretName: {{ $ol.fromSecretRef }}
       {{- end -}}
     {{- end }}
   {{- end -}}
@@ -121,6 +126,10 @@ envFrom:
     {{- if eq "volume" $ol.type }}
       {{- if $ol.hostPath }}
 - mountPath: {{ $ol.mountPath | default $ol.hostPath }}
+  name: {{ $ol_name }}
+  readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
+      {{- else if $ol.fromSecretRef }}
+- mountPath: {{ $ol.mountPath }}
   name: {{ $ol_name }}
   readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
       {{- end -}}
