@@ -10,16 +10,57 @@ overlays:
     - apiGroups: ["apps"]
       resources: ["deployments"]
       verbs: ["get", "patch"]
+  patcher-script:
+    type: volume
+    secret: true
+    mountPath: /tmp/patcher
+    defaultMode: 0755
+    items:
+      patcher.sh:plain: |
+        #!/bin/env bash
+        set -e
+        if [ -z "$1" ] || [ -z "$2" ]; then
+          echo "Error: All parameters must be set."
+          exit 1
+        fi
+        echo "Patching deployment $2 in namespace $1 to set replicas to ${3:-0}..."
+        kubectl patch deployment -n $1 $2 -p "{\"spec\": {\"replicas\": ${3:-0}}}"
+      downscale.sh:plain: |
+        #!/bin/env bash
+        set -e
+        set -x
+        # /tmp/patcher/patcher.sh <namespace> <deployment> 0
+      upscale.sh:plain: |
+        #!/bin/env bash
+        set -e
+        set -x
+        # /tmp/patcher/patcher.sh <namespace> <deployment> 1
+      infinity.sh:plain: |
+        #!/bin/env bash
+        declare d
+        while true; do
+          d=$(date +%H:%M)
+          if [[ "$d" == "23:50" ]]; then  # downscale at 11:50 PM UTC
+            /tmp/patcher/downscale.sh
+          elif [[ "$d" == "10:00" ]]; then  # upscale at 10:00 AM UTC
+            /tmp/patcher/upscale.sh
+          fi
+          sleep $((61 - $(date +%-S)))
+        done
 
 workloads:
   demo:
     enabled: true
     operation: worker
     image: bitnami/kubectl:latest
-    command: [ sleep, infinity ]
+    command: [ /tmp/patcher/infinity.sh ]
+    extras:
+      spec:
+        strategy:
+          type: Recreate
     containerExtras:
       app:
         imagePullPolicy: IfNotPresent
     overlays:
     - k8s-management
-
+    - patcher-script
