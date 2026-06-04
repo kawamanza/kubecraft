@@ -34,7 +34,8 @@
 The HTTPRoute implementation demonstrates the preferred feature shape:
 
 - `httpRoute` belongs to an enabled `operation: api` workload and creates at most one route for it.
-- `gateways` accepts a Gateway name scalar or a map with `name`, `namespace`, and `sectionName`.
+- `gateways` accepts `[namespace/]name[:port]` or a map with `name`, `namespace`, `sectionName`, and `port`.
+- A cross-namespace Gateway reference requires the Gateway listener's `allowedRoutes` to permit the HTTPRoute namespace.
 - Route rules expose concise `path`, `pathType`, `method`, and named local `port` fields.
 - A missing `backend` infers the workload Service; the named local port must exist in `servicePorts`.
 - An explicit `backend` supports an external Service; cross-namespace usage requires an externally managed `ReferenceGrant`.

@@ -15,6 +15,49 @@
   {{- end }}
 {{- end -}}
 
+{{- define "kubecraft.httproute-parent-ref" -}}
+  {{- $gateway := .gateway -}}
+  {{- $workload := .workload -}}
+  {{- $parentRef := dict -}}
+  {{- if kindIs "string" $gateway -}}
+    {{- if not (regexMatch "^[^/[:space:]:]+(/[^/[:space:]:]+)?(:[0-9]+)?$" $gateway) -}}
+      {{- required (printf "httpRoute gateway reference '%s' is invalid for workload '%s'; expected [namespace/]name[:port]" $gateway $workload) nil -}}
+    {{- end -}}
+    {{- $identityAndPort := splitList ":" $gateway -}}
+    {{- $identity := index $identityAndPort 0 -}}
+    {{- $namespaceAndName := splitList "/" $identity -}}
+    {{- $_ := set $parentRef "name" (last $namespaceAndName) -}}
+    {{- if eq (len $namespaceAndName) 2 -}}
+      {{- $_ := set $parentRef "namespace" (first $namespaceAndName) -}}
+    {{- end -}}
+    {{- if eq (len $identityAndPort) 2 -}}
+      {{- $_ := set $parentRef "port" (int (index $identityAndPort 1)) -}}
+    {{- end -}}
+  {{- else if kindIs "map" $gateway -}}
+    {{- if not $gateway.name -}}
+      {{- required (printf "httpRoute gateway name is required for workload '%s'" $workload) nil -}}
+    {{- end -}}
+    {{- $_ := set $parentRef "name" $gateway.name -}}
+    {{- if $gateway.namespace }}{{- $_ := set $parentRef "namespace" $gateway.namespace }}{{- end -}}
+    {{- if $gateway.sectionName }}{{- $_ := set $parentRef "sectionName" $gateway.sectionName }}{{- end -}}
+    {{- if hasKey $gateway "port" -}}
+      {{- if not (regexMatch "^[0-9]+$" (toString $gateway.port)) -}}
+        {{- required (printf "httpRoute gateway port '%v' is invalid for workload '%s'; expected an integer from 1 to 65535" $gateway.port $workload) nil -}}
+      {{- end -}}
+      {{- $_ := set $parentRef "port" (int $gateway.port) -}}
+    {{- end -}}
+  {{- else -}}
+    {{- required (printf "httpRoute gateways must be strings or maps for workload '%s'" $workload) nil -}}
+  {{- end -}}
+  {{- if hasKey $parentRef "port" -}}
+    {{- $port := get $parentRef "port" -}}
+    {{- if or (lt $port 1) (gt $port 65535) -}}
+      {{- required (printf "httpRoute gateway port '%v' is invalid for workload '%s'; expected an integer from 1 to 65535" $port $workload) nil -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $parentRef | toYaml -}}
+{{- end -}}
+
 {{- define "kubecraft.app-env-vars" -}}
   {{- range $key, $value := .env }}
 - name: {{ $key }}

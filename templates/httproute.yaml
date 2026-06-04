@@ -16,19 +16,8 @@
     {{- if $route.gateways }}
       {{- $parentRefs := list }}
       {{- range $gateway := $route.gateways }}
-        {{- if kindIs "string" $gateway }}
-          {{- $parentRefs = append $parentRefs (dict "name" $gateway) }}
-        {{- else if kindIs "map" $gateway }}
-          {{- if not $gateway.name }}
-            {{- required (printf "httpRoute gateway name is required for workload '%s'" $key) nil }}
-          {{- end }}
-          {{- $parentRef := dict "name" $gateway.name }}
-          {{- if $gateway.namespace }}{{- $_ := set $parentRef "namespace" $gateway.namespace }}{{- end }}
-          {{- if $gateway.sectionName }}{{- $_ := set $parentRef "sectionName" $gateway.sectionName }}{{- end }}
-          {{- $parentRefs = append $parentRefs $parentRef }}
-        {{- else }}
-          {{- required (printf "httpRoute gateways must be strings or maps for workload '%s'" $key) nil }}
-        {{- end }}
+        {{- $parentRef := include "kubecraft.httproute-parent-ref" (dict "gateway" $gateway "workload" $key) | fromYaml }}
+        {{- $parentRefs = append $parentRefs $parentRef }}
       {{- end }}
       {{- $_ := set $spec "parentRefs" $parentRefs }}
     {{- end }}

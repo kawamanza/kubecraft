@@ -17,9 +17,10 @@ workloads:
     httpRoute:
       gateways:
       - public-gateway
-      - name: private-gateway
-        namespace: gateway-system
+      - gateway-system/private-gateway:443
+      - name: admin-gateway
         sectionName: https
+        port: 8443
       hostnames:
       - checkout.example.com
       rules:

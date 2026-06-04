@@ -83,6 +83,9 @@ spec:
   - name: public-gateway
   - name: private-gateway
     namespace: gateway-system
+    port: 443
+  - name: admin-gateway
+    port: 8443
     sectionName: https
   rules:
   - backendRefs:

@@ -122,10 +122,12 @@ app:
 #   #     stream/UDP: 8083
 #   #   httpRoute:  # optional. Used only for operation: api
 #   #     gateways:
-#   #     - public-gateway
+#   #     - public-gateway  # [namespace/]name[:port]
+#   #     - gateway-system/private-gateway:443  # cross-namespace requires Gateway allowedRoutes
 #   #     - name: private-gateway
 #   #       namespace: gateway-system
 #   #       sectionName: https
+#   #       port: 443  # optional. Can be combined with sectionName
 #   #     hostnames:
 #   #     - api.example.com
 #   #     rules:
