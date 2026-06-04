@@ -1,0 +1,96 @@
+{{- range $key, $value := .Values.workloads }}
+  {{- $operation := default $key .operation }}
+  {{- if and .httpRoute (ne $operation "api") }}
+    {{- required (printf "httpRoute is only supported for operation 'api': workload '%s' uses '%s'" $key $operation) nil }}
+  {{- end }}
+  {{- if and .enabled .httpRoute (eq $operation "api") }}
+    {{- $scope := mustMergeOverwrite (deepCopy .) $ (dict "scope" $key) }}
+    {{- $appName := include "kubecraft.app-fullname" $scope }}
+    {{- $route := .httpRoute }}
+    {{- $routeExtras := $route.extras | default dict }}
+    {{- $labels := include "kubecraft.metadata-labels" $scope | fromYaml }}
+    {{- $metadataExtras := get $routeExtras "metadata" | default dict }}
+    {{- $metadata := mustMergeOverwrite (deepCopy $metadataExtras) $labels (dict "name" $appName "namespace" $.Release.Namespace) }}
+    {{- $spec := deepCopy (get $routeExtras "spec" | default dict) }}
+
+    {{- if $route.gateways }}
+      {{- $parentRefs := list }}
+      {{- range $gateway := $route.gateways }}
+        {{- if kindIs "string" $gateway }}
+          {{- $parentRefs = append $parentRefs (dict "name" $gateway) }}
+        {{- else if kindIs "map" $gateway }}
+          {{- if not $gateway.name }}
+            {{- required (printf "httpRoute gateway name is required for workload '%s'" $key) nil }}
+          {{- end }}
+          {{- $parentRef := dict "name" $gateway.name }}
+          {{- if $gateway.namespace }}{{- $_ := set $parentRef "namespace" $gateway.namespace }}{{- end }}
+          {{- if $gateway.sectionName }}{{- $_ := set $parentRef "sectionName" $gateway.sectionName }}{{- end }}
+          {{- $parentRefs = append $parentRefs $parentRef }}
+        {{- else }}
+          {{- required (printf "httpRoute gateways must be strings or maps for workload '%s'" $key) nil }}
+        {{- end }}
+      {{- end }}
+      {{- $_ := set $spec "parentRefs" $parentRefs }}
+    {{- end }}
+
+    {{- if $route.hostnames }}
+      {{- $_ := set $spec "hostnames" $route.hostnames }}
+    {{- end }}
+
+    {{- if $route.rules }}
+      {{- $rules := list }}
+      {{- range $ruleIndex, $routeRule := $route.rules }}
+        {{- $ruleExtras := $routeRule.extras | default dict }}
+        {{- $rule := deepCopy $ruleExtras }}
+
+        {{- if or $routeRule.path $routeRule.method }}
+          {{- $match := dict }}
+          {{- if $routeRule.path }}
+            {{- $_ := set $match "path" (dict "type" (default "PathPrefix" $routeRule.pathType) "value" $routeRule.path) }}
+          {{- end }}
+          {{- if $routeRule.method }}
+            {{- $_ := set $match "method" $routeRule.method }}
+          {{- end }}
+          {{- $_ := set $rule "matches" (list $match) }}
+        {{- end }}
+
+        {{- if not (hasKey $ruleExtras "backendRefs") }}
+          {{- $backendRef := dict }}
+          {{- if $routeRule.backend }}
+            {{- if not $routeRule.backend.name }}
+              {{- required (printf "httpRoute backend name is required for workload '%s', rule %d" $key $ruleIndex) nil }}
+            {{- end }}
+            {{- if not $routeRule.backend.port }}
+              {{- required (printf "httpRoute backend port is required for workload '%s', rule %d" $key $ruleIndex) nil }}
+            {{- end }}
+            {{- $_ := set $backendRef "name" $routeRule.backend.name }}
+            {{- $_ := set $backendRef "port" $routeRule.backend.port }}
+            {{- if $routeRule.backend.namespace }}{{- $_ := set $backendRef "namespace" $routeRule.backend.namespace }}{{- end }}
+            {{- if hasKey $routeRule.backend "weight" }}{{- $_ := set $backendRef "weight" $routeRule.backend.weight }}{{- end }}
+          {{- else }}
+            {{- if not $routeRule.port }}
+              {{- required (printf "httpRoute local service port is required for workload '%s', rule %d" $key $ruleIndex) nil }}
+            {{- end }}
+            {{- $portName := toString $routeRule.port }}
+            {{- $servicePorts := $value.servicePorts | default dict }}
+            {{- if not (hasKey $servicePorts $portName) }}
+              {{- required (printf "httpRoute local service port '%s' not found in workload '%s' servicePorts" $portName $key) nil }}
+            {{- end }}
+            {{- $_ := set $backendRef "name" $appName }}
+            {{- $_ := set $backendRef "port" (get $servicePorts $portName) }}
+          {{- end }}
+          {{- $_ := set $rule "backendRefs" (list $backendRef) }}
+        {{- end }}
+        {{- $rules = append $rules $rule }}
+      {{- end }}
+      {{- $_ := set $spec "rules" $rules }}
+    {{- end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  {{- $metadata | toYaml | nindent 2 }}
+spec:
+  {{- $spec | toYaml | nindent 2 }}
+  {{- end }}
+{{- end }}

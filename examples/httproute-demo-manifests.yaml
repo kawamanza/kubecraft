@@ -1,0 +1,117 @@
+---
+# Source: kubecraft/templates/poddisruptionbudget.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: checkout-api-pdb
+  namespace: default
+spec:
+  minAvailable: 100%
+  selector:
+    matchLabels:
+      app/name: checkout-api
+      app/subset: main
+---
+# Source: kubecraft/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout-api
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app/name: checkout-api
+    app/subset: main
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+---
+# Source: kubecraft/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app/name: checkout-api
+    app/realm: sandbox
+    app/subset: main
+  name: checkout-api
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app/name: checkout-api
+      app/subset: main
+  template:    
+    metadata:
+      labels:
+        app/name: checkout-api
+        app/realm: sandbox
+        app/subset: main
+    spec:
+      containers:
+      - env:
+        - name: REALM_CONTEXT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app/realm']
+        image: registry.example.com/checkout:v1.0.0
+        name: app
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+---
+# Source: kubecraft/templates/httproute.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    example.com/owner: checkout-team
+  labels:
+    app/name: checkout-api
+    app/realm: sandbox
+    app/subset: main
+  name: checkout-api
+  namespace: default
+spec:
+  hostnames:
+  - checkout.example.com
+  parentRefs:
+  - name: public-gateway
+  - name: private-gateway
+    namespace: gateway-system
+    sectionName: https
+  rules:
+  - backendRefs:
+    - name: checkout-api
+      port: 8080
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+  - backendRefs:
+    - name: checkout-api
+      port: 8080
+    filters:
+    - requestHeaderModifier:
+        set:
+        - name: x-route
+          value: orders
+      type: RequestHeaderModifier
+    matches:
+    - method: POST
+      path:
+        type: PathPrefix
+        value: /orders
+  - backendRefs:
+    - name: legacy-checkout
+      namespace: legacy
+      port: 8080
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /legacy

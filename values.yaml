@@ -120,6 +120,29 @@ app:
 #   #     http1: 8080  # TCP
 #   #     http2/TCP: 8081  # explicit
 #   #     stream/UDP: 8083
+#   #   httpRoute:  # optional. Used only for operation: api
+#   #     gateways:
+#   #     - public-gateway
+#   #     - name: private-gateway
+#   #       namespace: gateway-system
+#   #       sectionName: https
+#   #     hostnames:
+#   #     - api.example.com
+#   #     rules:
+#   #     - path: /
+#   #       pathType: PathPrefix  # default
+#   #       method: GET  # optional
+#   #       port: http1  # required local servicePorts reference
+#   #     - path: /legacy
+#   #       backend:  # optional. Defaults to this workload's Service
+#   #         name: legacy-api
+#   #         namespace: legacy  # cross-namespace backends require an external ReferenceGrant
+#   #         port: 8080
+#   #         weight: 1
+#   #       extras: {}  # native HTTPRoute rule fields; backendRefs overrides backend
+#   #     extras:
+#   #       metadata: {}
+#   #       spec: {}
 #   #   overlays:  # list of volumes or env-vars to include (see $.overlays)
 #   #   - vars
 #   #   - sandbox: inline-file

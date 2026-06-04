@@ -1,0 +1,47 @@
+app:
+  name: checkout
+  subset: main
+  env: sandbox
+
+image:
+  registry: registry.example.com/
+  name: checkout
+  tag: v1.0.0
+
+workloads:
+  api:
+    enabled: true
+    operation: api
+    servicePorts:
+      http: 8080
+    httpRoute:
+      gateways:
+      - public-gateway
+      - name: private-gateway
+        namespace: gateway-system
+        sectionName: https
+      hostnames:
+      - checkout.example.com
+      rules:
+      - path: /
+        port: http
+      - path: /orders
+        method: POST
+        port: http
+        extras:
+          filters:
+          - type: RequestHeaderModifier
+            requestHeaderModifier:
+              set:
+              - name: x-route
+                value: orders
+      - path: /legacy
+        backend:
+          name: legacy-checkout
+          namespace: legacy
+          port: 8080
+          weight: 1
+      extras:
+        metadata:
+          annotations:
+            example.com/owner: checkout-team
