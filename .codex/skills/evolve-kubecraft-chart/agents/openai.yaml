@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evolve Kubecraft Chart"
+  short_description: "Extend Kubecraft with expressive optional resources"
+  default_prompt: "Use $evolve-kubecraft-chart to design and implement an optional Kubecraft chart resource."
