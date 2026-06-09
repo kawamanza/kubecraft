@@ -109,6 +109,55 @@ spec:
   {{- end }}
 {{- end -}}
 
+{{- define "kubecraft.overlay-checksum" -}}
+  {{- $checksums := dict -}}
+  {{- range .overlays }}
+    {{- $ol_ref := ternary . (dict $.Values.app.env .) (kindIs "map" .) -}}
+    {{- $ol_name := get $ol_ref $.Values.app.env }}
+    {{- $ol := get $.Values.overlays (toString $ol_name) | default dict -}}
+    {{- if or (not (hasKey $ol_ref $.Values.app.env)) (not (or (kindIs "bool" $ol_name) (hasKey $.Values.overlays $ol_name))) -}}
+      {{- required (printf "Overlay not found: %s for %s" $ol_ref $.Values.app.env) nil -}}
+    {{- end -}}
+    {{- if and (not (kindIs "bool" $ol_name)) (eq (default $.Values.app.env $ol.env) $.Values.app.env) -}}
+      {{- $checksum := dict -}}
+      {{- if $ol.checksum }}
+        {{- $_ := set $checksum "manual" $ol.checksum }}
+      {{- end -}}
+      {{- if eq "env-vars" $ol.type -}}
+        {{- $items := dict -}}
+        {{- range $env_key, $env_value := $ol.items }}
+          {{- if not (or (kindIs "map" $env_value) (regexMatch "\\$\\([\\w]+\\)" $env_value) ) }}
+            {{- $_ := set $items $env_key $env_value }}
+          {{- end -}}
+        {{- end -}}
+        {{- if $items }}
+          {{- $_ := set $checksum "configMap" $items }}
+        {{- end -}}
+      {{- else if and (eq "volume" $ol.type) (not $ol.hostPath) (not $ol.fromSecretRef) $ol.secret (kindIs "map" $ol.items) -}}
+        {{- $items := dict -}}
+        {{- range $k, $v := $ol.items }}
+          {{- if hasSuffix ":plain" $k }}
+            {{- $_ := set $items (trimSuffix ":plain" $k) (b64enc $v) }}
+          {{- else }}
+            {{- $_ := set $items $k $v }}
+          {{- end }}
+        {{- end }}
+        {{- if $items }}
+          {{- $_ := set $checksum "secret" $items }}
+        {{- end }}
+      {{- end -}}
+      {{- if $checksum }}
+        {{- $_ := set $checksums (toString $ol_name) $checksum }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if $checksums }}
+metadata:
+  annotations:
+    kubecraft.io/overlays-checksum: {{ $checksums | toYaml | sha256sum }}
+  {{- end }}
+{{- end -}}
+
 {{- define "kubecraft.app-env-from" -}}
   {{- range $value := .envFrom }}
     {{- $key := (index (keys $value) 0) }}
