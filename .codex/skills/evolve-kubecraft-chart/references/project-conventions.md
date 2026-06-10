@@ -28,6 +28,7 @@
 - Fail during `helm template` when configuration is present but internally inconsistent.
 - Do not silently select from multiple possible ports, targets, or owners.
 - Error messages should state what is invalid and where it occurred.
+- Workload pod templates include `kubecraft.io/overlays-checksum` when they use chart-generated ConfigMap/Secret overlays or overlays with manual `checksum`.
 
 ## HTTPRoute Reference Design
 
