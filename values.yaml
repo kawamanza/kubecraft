@@ -11,6 +11,7 @@ app:
 # overlays:
 #   runtime:  # creates a configmap named {$.app.name}-{overlays[key]}-env-vars
 #     type: env-vars
+#     # checksum: manual-version  # optional. included in workload pod template checksum
 #     items:
 #       CUSCOM_ENV_VAR: "value"
 #       DD_ENV:
@@ -39,6 +40,7 @@ app:
 #     type: volume
 #     from: configMap
 #     name: external-configmap-name
+#     # checksum: manual-version  # optional. use for external resources managed outside this chart
 #     mountPath: /app/cfg
 #     defaultMode: 420
 #     # items:
@@ -145,7 +147,7 @@ app:
 #   #     extras:
 #   #       metadata: {}
 #   #       spec: {}
-#   #   overlays:  # list of volumes or env-vars to include (see $.overlays)
+#   #   overlays:  # list of volumes or env-vars to include (see $.overlays). Generated ConfigMaps/Secrets add a pod template checksum
 #   #   - vars
 #   #   - sandbox: inline-file
 #   #     production: inline-file-list

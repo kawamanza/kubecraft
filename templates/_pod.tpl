@@ -26,7 +26,8 @@ spec:
 {{- define "kubecraft.pod-template" }}
   {{- $tmp := include "kubecraft.pod-template-base" $ | fromYaml }}
   {{- $rbac := include "kubecraft.overlay-rbac" $ | fromYaml }}
-  {{- $extras := mustMergeOverwrite (deepCopy (.templateExtras | default dict)) $tmp $rbac }}
+  {{- $checksum := include "kubecraft.overlay-checksum" $ | fromYaml }}
+  {{- $extras := mustMergeOverwrite (deepCopy (.templateExtras | default dict)) $tmp $rbac $checksum }}
   {{- $extras | toYaml | nindent 0 }}
 {{- end -}}
 

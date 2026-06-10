@@ -51,6 +51,8 @@ spec:
       app/subset: main
   template:    
     metadata:
+      annotations:
+        kubecraft.io/overlays-checksum: 1978a1fea2a419435bb7f303fdb89fd61b33ded6673d769800072dfcd66996b5
       labels:
         app/name: ensaio-demo
         app/realm: sandbox
