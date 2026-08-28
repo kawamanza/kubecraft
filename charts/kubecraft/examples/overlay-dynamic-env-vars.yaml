@@ -10,6 +10,10 @@ overlays:
       ENVIRONMENT: $(REALME_CONTEXT_NAME)  # deployment manifest
       SERVICE_NAME:  # deployment manifest
         fromFieldRef: metadata.labels['app.kubernetes.io/name']
+  credentials:
+    type: secrets
+    items:
+      USERNAME:plain: service
 
 workloads:
   api:
@@ -19,3 +23,4 @@ workloads:
       LOG_LEVEL: info
     overlays:
     - runtime  # inject config from $.overlays.runtime
+    - credentials  # inject secret from $.overlays.credentials

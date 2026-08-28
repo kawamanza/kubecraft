@@ -194,6 +194,11 @@ envFrom:
       {{- $template_name := ternary "%s" "%s-env-vars" (kindIs "string" $ol.fullname) }}
 - configMapRef: {{ printf $template_name (include "kubecraft.app-fullname" $scope) }}
     {{- end -}}
+    {{- if eq "secrets" $ol.type -}}
+      {{- $scope := mustMergeOverwrite (deepCopy $ol) (dict "Values" $.Values "Release" $.Release "scope" $ol_name) -}}
+      {{- $template_name := ternary "%s" "%s-env-vars" (kindIs "string" $ol.fullname) }}
+- secretRef: {{ printf $template_name (include "kubecraft.app-fullname" $scope) }}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 

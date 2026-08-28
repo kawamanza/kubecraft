@@ -1,4 +1,27 @@
 ---
+# Source: kubecraft/templates/poddisruptionbudget.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: ensaio-demo-api-pdb
+  namespace: default
+spec:
+  minAvailable: 100%
+  selector:
+    matchLabels:
+      app/name: ensaio-demo-api
+      app/subset: main
+---
+# Source: kubecraft/templates/secret-overlay-env-vars.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ensaio-demo-credentials-env-vars
+  namespace: default
+type: Opaque
+data:
+  USERNAME: c2VydmljZQ==
+---
 # Source: kubecraft/templates/configmap-overlay-env-vars.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -7,6 +30,18 @@ metadata:
   namespace: default
 data:
   LOG_LEVEL: "debug"
+---
+# Source: kubecraft/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ensaio-demo-api
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app/name: ensaio-demo-api
+    app/subset: main
 ---
 # Source: kubecraft/templates/deployment.yaml
 apiVersion: apps/v1
@@ -49,5 +84,7 @@ spec:
         envFrom:
         - configMapRef:
             name: ensaio-demo-runtime-env-vars
+        - secretRef:
+            name: ensaio-demo-credentials-env-vars
         image: python:3.12-alpine
         name: app
