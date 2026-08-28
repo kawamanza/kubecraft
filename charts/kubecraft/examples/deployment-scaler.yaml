@@ -14,7 +14,7 @@ overlays:
     type: volume
     secret: true
     mountPath: /tmp/patcher
-    defaultMode: 0755
+    defaultMode: "0755"
     items:
       patcher.sh:plain: |
         #!/bin/env bash

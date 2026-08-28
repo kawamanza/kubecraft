@@ -15,6 +15,19 @@
   {{- end }}
 {{- end -}}
 
+{{- define "kubecraft.default-mode" -}}
+  {{- $value := .value | default 420 -}}
+  {{- $context := .context -}}
+  {{- if kindIs "string" $value -}}
+    {{- if not (regexMatch "^0?[0-7]{3,4}$" $value) -}}
+      {{- required (printf "defaultMode %q is invalid for %s; use a decimal integer or a quoted octal string like \"0644\"" $value $context) nil -}}
+    {{- end -}}
+    {{- $value | toDecimal -}}
+  {{- else -}}
+    {{- $value -}}
+  {{- end -}}
+{{- end -}}
+
 {{- define "kubecraft.httproute-parent-ref" -}}
   {{- $gateway := .gateway -}}
   {{- $workload := .workload -}}
@@ -200,12 +213,12 @@ envFrom:
       {{- else if $ol.fromSecretRef }}
 - name: {{ $ol_name }}
   secret:
-    defaultMode: {{ $ol.defaultMode | default 420 }}
+    defaultMode: {{ include "kubecraft.default-mode" (dict "value" $ol.defaultMode "context" $ol_name) }}
     secretName: {{ $ol.fromSecretRef }}
       {{- else if and $ol.secret (kindIs "map" $ol.items) }}
 - name: {{ $ol_name }}
   secret:
-    defaultMode: {{ $ol.defaultMode | default 420 }}
+    defaultMode: {{ include "kubecraft.default-mode" (dict "value" $ol.defaultMode "context" $ol_name) }}
     secretName: {{ $ol.fullname | default (printf "%s-%s-files-%s" (default $.Release.Name $.Values.app.name) (trimSuffix "-files" $ol_name) (ternary "" $.Values.app.subset (eq "main" $.Values.app.subset))) | trimSuffix "-" }}
       {{- end -}}
     {{- end }}

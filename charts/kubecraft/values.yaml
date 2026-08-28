@@ -42,7 +42,7 @@ app:
 #     name: external-configmap-name
 #     # checksum: manual-version  # optional. use for external resources managed outside this chart
 #     mountPath: /app/cfg
-#     defaultMode: 420
+#     defaultMode: "0644"  # quoted octal string, rendered as decimal for Kubernetes
 #     # items:
 #     # - key: data-key
 #     #   path: test.txt

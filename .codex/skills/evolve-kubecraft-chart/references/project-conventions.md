@@ -14,6 +14,7 @@
 - A scalar represents the common case; a map represents the detailed case. Gateway references, local/external backends, overlays, and environment-specific selections follow this principle.
 - Existing DDL owns reusable facts. A feature should reference a named `servicePorts` entry rather than repeat its numeric port.
 - `extras`, `templateExtras`, and `containerExtras` preserve access to native Kubernetes fields without making the main DDL verbose.
+- `defaultMode` accepts decimal integers or quoted octal permission strings such as `"0644"`; templates render the Kubernetes decimal integer form.
 
 ## Scope, Names, and Merges
 
