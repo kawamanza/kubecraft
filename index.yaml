@@ -3,12 +3,12 @@ entries:
   kubecraft:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2026-06-16T15:36:27.763718789-03:00"
+    created: "2026-09-02T16:27:06.618606615-03:00"
     description: A Helm chart for Kubernetes
-    digest: b5e31d2e981bb3f572e29e132b53ad28ff3636665cf1f22ceb6ed3363fbacc2e
+    digest: fd407cfb12eb51e26c345c3a9691dbc416bed351ee9a8f0a3c2e75a889065633
     name: kubecraft
     type: application
     urls:
     - https://kawamanza.github.io/kubecraft/kubecraft-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-16T15:36:27.763009766-03:00"
+generated: "2026-09-02T16:27:06.618201888-03:00"
