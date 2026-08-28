@@ -1,0 +1,101 @@
+---
+# Source: kubecraft/templates/secret-overlay-volume.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: schema-snapshot-scripts-files
+  namespace: default
+data:
+  snapshot.sh: IyEvYmluL3NoCmVjaG8gInJ1bm5pbmcgc2NoZW1hIHNuYXBzaG90Igo=
+---
+# Source: kubecraft/templates/configmap-overlay-env-vars.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schema-snapshot-runtime-env-vars
+  namespace: default
+data:
+  LOG_LEVEL: "info"
+---
+# Source: kubecraft/templates/cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  annotations:
+    example.com/owner: data-platform
+  labels:
+    app/name: schema-snapshot-job
+    app/realm: sandbox
+    app/subset: main
+  name: schema-snapshot-job
+  namespace: default
+spec:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 600
+      backoffLimit: 2
+      completions: 1
+      template:
+        metadata:
+          annotations:
+            example.com/workload: schema-snapshot
+            kubecraft.io/overlays-checksum: 8eced36f48a5f8379fe141032d29ef9bcfce70423ee7f2f2e3dc874fa53ecb3d
+          labels:
+            app/name: schema-snapshot-job
+            app/realm: sandbox
+            app/subset: main
+        spec:
+          containers:
+          - env:
+            - name: REALM_CONTEXT_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app/realm']
+            - name: AWS_REGION
+              value: us-east-1
+            - name: S3_BUCKET
+              value: my-schema-snapshots-bucket
+            - name: S3_PREFIX
+              value: schema-snapshot
+            envFrom:
+            - configMapRef:
+                name: schema-snapshot-runtime-env-vars
+            - secretRef:
+                name: schema-snapshot-db
+            image: registry.example.com/schema-snapshot:latest
+            imagePullPolicy: IfNotPresent
+            name: app
+            resources:
+              limits:
+                cpu: 500m
+                memory: 256Mi
+              requests:
+                cpu: 100m
+                memory: 128Mi
+            volumeMounts:
+            - mountPath: /app/scripts
+              name: scripts
+              readOnly: true
+            - mountPath: /var/run/aws
+              name: aws-credentials
+              readOnly: true
+          restartPolicy: OnFailure
+          securityContext:
+            fsGroup: 10001
+            runAsNonRoot: true
+            runAsUser: 10001
+          serviceAccountName: schema-snapshot
+          volumes:
+          - name: scripts
+            secret:
+              defaultMode: 493
+              secretName: schema-snapshot-scripts-files
+          - name: aws-credentials
+            secret:
+              defaultMode: 420
+              secretName: schema-snapshot-aws
+      ttlSecondsAfterFinished: 3600

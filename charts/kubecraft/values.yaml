@@ -107,7 +107,9 @@ app:
 #   #   command:  # optional. default to Dockerfile CMD
 #   #   fullname:  # optional. mounted from {$.app.name}-{workloads[key]}
 #   #   operation: api  # optional. enum: api, cronjob, job, service, stream, worker, agent
-#   #   schedule:  # optional. Used only for operation: cronjob
+#   #   schedule:  # required for operation: cronjob
+#   #   job:  # optional. Used only for operation: cronjob
+#   #     extras: {}  # native jobTemplate.spec fields
 #   #   resources: api  # optional. Ignored if not present in $.resources[key]
 #   #   autoscaling: false  # default. Use $.autoscaling[key]
 #   #   probes: api  # optional. Ignored if not present in $.probes

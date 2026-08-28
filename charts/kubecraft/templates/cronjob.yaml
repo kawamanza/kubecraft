@@ -1,0 +1,40 @@
+{{- range $key, $value := .Values.workloads }}
+{{- if and .enabled (eq (default $key .operation) "cronjob") }}
+  {{- if not .schedule }}
+    {{- required (printf "schedule is required for cronjob workload '%s'" $key) nil }}
+  {{- end }}
+  {{- $templateExtras := deepCopy (.templateExtras | default dict) }}
+  {{- $templateSpec := deepCopy (get $templateExtras "spec" | default dict) }}
+  {{- if not (hasKey $templateSpec "restartPolicy") }}
+    {{- $_ := set $templateSpec "restartPolicy" "OnFailure" }}
+  {{- end }}
+  {{- $_ := set $templateExtras "spec" $templateSpec }}
+  {{- $scope := mustMergeOverwrite (deepCopy .) $ (dict "scope" $key "templateExtras" $templateExtras) }}
+  {{- $app_name := include "kubecraft.app-fullname" $scope }}
+  {{- $labels := include "kubecraft.metadata-labels" $scope | fromYaml }}
+  {{- $metadataExtras := get (.extras | default dict) "metadata" | default dict }}
+  {{- $cronjobSpecExtras := deepCopy (get (.extras | default dict) "spec" | default dict) }}
+  {{- $_ := unset $cronjobSpecExtras "schedule" }}
+  {{- $_ := unset $cronjobSpecExtras "jobTemplate" }}
+  {{- $job := deepCopy (.job | default dict) }}
+  {{- $jobExtras := get $job "extras" | default dict }}
+  {{- $_ := unset $job "extras" }}
+  {{- $_ := unset $job "template" }}
+  {{- $jobExtras := unset (deepCopy $jobExtras) "template" }}
+  {{- $podTemplate := include "kubecraft.pod-template" $scope | fromYaml }}
+  {{- $jobSpec := mustMergeOverwrite $job $jobExtras (dict "template" $podTemplate) }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  {{- mustMergeOverwrite (deepCopy $metadataExtras) $labels (dict "name" $app_name "namespace" $.Release.Namespace) | toYaml | nindent 2 }}
+spec:
+  schedule: {{ .schedule | quote }}
+  {{- if $cronjobSpecExtras }}
+    {{- $cronjobSpecExtras | toYaml | nindent 2 }}
+  {{- end }}
+  jobTemplate:
+    spec:
+      {{- $jobSpec | toYaml | nindent 6 }}
+{{- end }}
+{{- end }}

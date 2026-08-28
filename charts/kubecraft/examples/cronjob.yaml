@@ -1,0 +1,82 @@
+app:
+  name: schema-snapshot
+  subset: main
+  env: sandbox
+
+image:
+  registry: registry.example.com/
+  name: schema-snapshot
+  tag: latest
+
+resources:
+  schema-snapshot:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+
+overlays:
+  runtime:
+    type: env-vars
+    items:
+      LOG_LEVEL: info
+  scripts:
+    type: volume
+    secret: true
+    mountPath: /app/scripts
+    defaultMode: "0755"
+    items:
+      snapshot.sh:plain: |
+        #!/bin/sh
+        echo "running schema snapshot"
+  aws-credentials:
+    type: volume
+    fromSecretRef: schema-snapshot-aws
+    checksum: schema-snapshot-aws-v1
+    mountPath: /var/run/aws
+
+workloads:
+  job:
+    enabled: true
+    operation: cronjob
+    schedule: "0 */6 * * *"
+    extras:
+      metadata:
+        annotations:
+          example.com/owner: data-platform
+      spec:
+        concurrencyPolicy: Forbid
+        successfulJobsHistoryLimit: 3
+        failedJobsHistoryLimit: 3
+    job:
+      extras:
+        backoffLimit: 2
+        activeDeadlineSeconds: 600
+        completions: 1
+        ttlSecondsAfterFinished: 3600
+    containerExtras:
+      app:
+        imagePullPolicy: IfNotPresent
+    templateExtras:
+      metadata:
+        annotations:
+          example.com/workload: schema-snapshot
+      spec:
+        serviceAccountName: schema-snapshot
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 10001
+          fsGroup: 10001
+    env:
+      S3_BUCKET: "my-schema-snapshots-bucket"
+      S3_PREFIX: "schema-snapshot"
+      AWS_REGION: "us-east-1"
+    envFrom:
+    - secretRef: schema-snapshot-db
+    resources: schema-snapshot
+    overlays:
+    - runtime
+    - scripts
+    - aws-credentials
