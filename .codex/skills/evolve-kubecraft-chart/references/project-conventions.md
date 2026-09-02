@@ -15,6 +15,7 @@
 - Existing DDL owns reusable facts. A feature should reference a named `servicePorts` entry rather than repeat its numeric port.
 - `extras`, `templateExtras`, and `containerExtras` preserve access to native Kubernetes fields without making the main DDL verbose.
 - `defaultMode` accepts decimal integers or quoted octal permission strings such as `"0644"`; templates render the Kubernetes decimal integer form.
+- Volume overlays can mount pre-existing ConfigMaps with `from: configMap`, `name`, `mountPath`, optional `defaultMode`, and native `items` entries; the chart must not generate that ConfigMap.
 
 ## Scope, Names, and Merges
 

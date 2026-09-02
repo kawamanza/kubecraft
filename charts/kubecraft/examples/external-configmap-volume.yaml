@@ -1,0 +1,55 @@
+app:
+  name: external-config-consumer
+  subset: main
+  env: sandbox
+
+image:
+  registry: docker.io/
+  name: busybox
+  tag: latest
+
+overlays:
+  external-config:
+    type: volume
+    from: configMap
+    name: platform-runtime-config
+    mountPath: /app/config
+    defaultMode: "0644"
+    items:
+    - key: application.yaml
+      path: application.yaml
+    - key: logback.xml
+      path: logging/logback.xml
+
+workloads:
+  api:
+    enabled: true
+    operation: api
+    command:
+    - /bin/sh
+    - -c
+    - sleep infinity
+    overlays:
+    - external-config
+  node-agent:
+    enabled: true
+    operation: daemonset
+    command:
+    - /bin/sh
+    - -c
+    - sleep infinity
+    overlays:
+    - external-config
+  snapshot:
+    enabled: true
+    operation: cronjob
+    schedule: "*/15 * * * *"
+    command:
+    - /bin/sh
+    - -c
+    - cat /app/config/application.yaml
+    overlays:
+    - external-config
+    job:
+      extras:
+        backoffLimit: 1

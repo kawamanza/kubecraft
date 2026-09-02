@@ -36,14 +36,14 @@ app:
 #     hostPath: /var/log
 #     # mountPath: /var/log  # default to .hostPath
 #     # readonly: true  # default
-#   external-config:
+#   external-config:  # mounts a pre-existing ConfigMap as a volume
 #     type: volume
 #     from: configMap
 #     name: external-configmap-name
 #     # checksum: manual-version  # optional. use for external resources managed outside this chart
 #     mountPath: /app/cfg
 #     defaultMode: "0644"  # quoted octal string, rendered as decimal for Kubernetes
-#     # items:
+#     # items:  # native configMap.items entries
 #     # - key: data-key
 #     #   path: test.txt
 

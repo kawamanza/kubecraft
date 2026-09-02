@@ -215,6 +215,15 @@ envFrom:
 - hostPath:
     path: {{ $ol.hostPath }}
   name: {{ $ol_name }}
+      {{- else if eq $ol.from "configMap" }}
+- name: {{ $ol_name }}
+  configMap:
+    defaultMode: {{ include "kubecraft.default-mode" (dict "value" $ol.defaultMode "context" $ol_name) }}
+    name: {{ required (printf "configMap name is required for volume overlay %s" $ol_name) $ol.name }}
+        {{- if $ol.items }}
+    items:
+          {{- $ol.items | toYaml | nindent 6 }}
+        {{- end }}
       {{- else if $ol.fromSecretRef }}
 - name: {{ $ol_name }}
   secret:
@@ -241,6 +250,10 @@ envFrom:
     {{- if eq "volume" $ol.type }}
       {{- if $ol.hostPath }}
 - mountPath: {{ $ol.mountPath | default $ol.hostPath }}
+  name: {{ $ol_name }}
+  readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
+      {{- else if eq $ol.from "configMap" }}
+- mountPath: {{ required (printf "mountPath is required for configMap volume overlay %s" $ol_name) $ol.mountPath }}
   name: {{ $ol_name }}
   readOnly: {{ ternary $ol.readOnly true (kindIs "bool" $ol.readOnly) | toString }}
       {{- else if $ol.fromSecretRef }}
